@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>普通數學測驗系統 (完美收官版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], processEscapes: true }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .option-selected {
+            background-color: #dbeafe !important;
+            border-color: #3b82f6 !important;
+            color: #1e40af !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div id="loading-spinner" class="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50 hidden">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600 font-semibold">正在通訊中，請稍候...</p>
+    </div>
+
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8">
+        
+        <div id="login-block" class="space-y-6">
+            <div class="text-center">
+                <h1 class="text-3xl font-extrabold text-blue-600 tracking-tight">普通數學測驗系統</h1>
+                <p class="text-gray-500 mt-2">請完整填寫基本資料以開始線上測驗</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">學系</label>
+                    <input type="text" id="dept" placeholder="請輸入學系" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">學號</label>
+                    <input type="text" id="student-id" placeholder="請輸入學號" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">姓名</label>
+                    <input type="text" id="username" placeholder="請輸入姓名" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+            <button onclick="startTest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg">
+                確認登入並下載試題
+            </button>
+        </div>
+
+        <div id="quiz-block" class="hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-4">
+                <span id="question-no" class="text-lg font-bold text-gray-700">題號: 1/12</span>
+                <span id="student-display" class="text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium"></span>
+            </div>
+            
+            <div class="bg-gray-50 rounded-xl p-5 min-h-[90px] flex items-center">
+                <p id="question-item" class="text-xl leading-relaxed text-gray-800 font-medium w-full"></p>
+            </div>
+            
+            <div id="question-img-box" class="hidden flex flex-col items-center justify-center p-4 bg-gray-100 rounded-xl border border-gray-200">
+                <img id="question-img" src="" alt="題目圖片" class="max-h-64 object-contain rounded-lg shadow-sm hidden">
+                
+                <div id="dynamic-pie-chart" class="hidden w-full flex flex-col sm:flex-row items-center justify-center py-2 gap-6">
+                    <svg width="200" height="200" viewBox="0 0 320 320" style="transform: rotate(-90deg);">
+                        <circle r="100" cx="160" cy="160" fill="transparent" stroke="#10B981" stroke-width="200" stroke-dasharray="251.3 628.3" stroke-dashoffset="0" />
+                        <circle r="100" cx="160" cy="160" fill="transparent" stroke="#3B82F6" stroke-width="200" stroke-dasharray="219.9 628.3" stroke-dashoffset="-251.3" />
+                        <circle r="100" cx="160" cy="160" fill="transparent" stroke="#F59E0B" stroke-width="200" stroke-dasharray="138.2 628.3" stroke-dashoffset="-471.2" />
+                        <circle r="100" cx="160" cy="160" fill="transparent" stroke="#9CA3AF" stroke-width="200" stroke-dasharray="18.9 628.3" stroke-dashoffset="-609.4" />
+                        <circle r="50" cx="160" cy="160" fill="#FFFFFF" />
+                    </svg>
+                    <div class="flex flex-col justify-center space-y-2 text-sm font-semibold text-gray-700">
+                        <div class="flex items-center"><span class="w-4 h-4 bg-[#10B981] inline-block mr-2 rounded"></span>教育訓練 40%</div>
+                        <div class="flex items-center"><span class="w-4 h-4 bg-[#3B82F6] inline-block mr-2 rounded"></span>行政管理 35%</div>
+                        <div class="flex items-center"><span class="w-4 h-4 bg-[#F59E0B] inline-block mr-2 rounded"></span>交通旅費 22%</div>
+                        <div class="flex items-center"><span class="w-4 h-4 bg-[#9CA3AF] inline-block mr-2 rounded"></span>其他支出 3%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="options-box" class="space-y-3">
+                <button class="w-full text-left border-2 border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition font-medium text-gray-700 outline-none" id="opt1" onclick="selectOption(1)"></button>
+                <button class="w-full text-left border-2 border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition font-medium text-gray-700 outline-none" id="opt2" onclick="selectOption(2)"></button>
+                <button class="w-full text-left border-2 border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition font-medium text-gray-700 outline-none" id="opt3" onclick="selectOption(3)"></button>
+                <button class="w-full text-left border-2 border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition font-medium text-gray-700 outline-none" id="opt4" onclick="selectOption(4)"></button>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 font-semibold transition">上一題</button>
+                <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition shadow">下一題</button>
+                <button id="submit-btn" onclick="submitTest()" class="hidden px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition shadow-md">提交作答</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxP1I_JHX2skBa_Rv8kU1wnEbK5_1kVuPO6bmxphDBS1QF-oSnnEArbTMGNPgeq3FG-AA/exec"; 
+
+        let questions = [];
+        let currentQuestion = 0;
+        let answers = [];
+        let userInfo = { dept: "", id: "", name: "" };
+
+        // 終極精準解析：第3題專用 .jpg，其餘題目專用 .png
+        function findLocalImagePath(figName, questionNo) {
+            var no = parseInt(questionNo, 10);
+            
+            // 第 12 題直接啟動動態 SVG 畫圖機制
+            if (no === 12) {
+                return "dynamic_pie";
+            }
+            
+            // 完美配合你的實體檔案格式
+            if (no === 3)  return "images/item3.jpg"; // 第3題精準抓取 JPG 檔
+            if (no === 6)  return "images/item6.png"; // 以下全部精準抓取 PNG 檔
+            if (no === 7)  return "images/item7.png";
+            if (no === 8)  return "images/item8.png";
+            if (no === 10) return "images/item10.png";
+            
+            return "";
+        }
+
+        function showLoading(status) {
+            const spinner = document.getElementById('loading-spinner');
+            if (status) spinner.classList.remove('hidden');
+            else spinner.classList.add('hidden');
+        }
+
+        async function startTest() {
+            const dept = document.getElementById('dept').value.trim();
+            const id = document.getElementById('student-id').value.trim();
+            const name = document.getElementById('username').value.trim();
+            if (!dept || !id || !name) { alert('請填寫完整資料！'); return; }
+            
+            userInfo = { dept, id, name };
+            
+            showLoading(true);
+            try {
+                const response = await fetch(GAS_API_URL);
+                questions = await response.getJson ? await response.json() : JSON.parse(await response.text());
+                
+                if(!questions || questions.length === 0) {
+                    throw new Error("題庫內沒有題目，請檢查試算表。");
+                }
+                
+                answers = new Array(questions.length).fill(0);
+                document.getElementById('student-display').innerText = `${dept} / ${name}`;
+                document.getElementById('login-block').classList.add('hidden');
+                document.getElementById('quiz-block').classList.remove('hidden');
+                loadQuestion();
+            } catch (err) {
+                alert("無法從雲端試算表下載題目，錯誤原因：" + err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            const total = questions.length;
+
+            document.getElementById('question-no').innerText = `題號: ${currentQuestion + 1} / ${total}`;
+            document.getElementById('question-item').innerHTML = q.item;
+
+            const imgBox = document.getElementById('question-img-box');
+            const imgTag = document.getElementById('question-img');
+            const dynamicChart = document.getElementById('dynamic-pie-chart');
+
+            imgBox.classList.add('hidden');
+            imgTag.classList.add('hidden');
+            dynamicChart.classList.add('hidden');
+
+            // 執行混和格式（JPG+PNG）解析
+            const imgUrl = findLocalImagePath(q.fig_name, q.no);
+
+            if (imgUrl === "dynamic_pie") {
+                imgBox.classList.remove('hidden');
+                dynamicChart.classList.remove('hidden');
+            } else if (imgUrl) {
+                imgTag.src = imgUrl;
+                imgBox.classList.remove('hidden');
+                imgTag.classList.remove('hidden');
+            }
+
+            document.getElementById('opt1').innerHTML = `(A) ${q.option1}`;
+            document.getElementById('opt2').innerHTML = `(B) ${q.option2}`;
+            document.getElementById('opt3').innerHTML = `(C) ${q.option3}`;
+            document.getElementById('opt4').innerHTML = `(D) ${q.option4}`;
+
+            const savedAns = answers[currentQuestion];
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`opt${i}`);
+                if (i === savedAns) btn.classList.add('option-selected');
+                else btn.classList.remove('option-selected');
+            }
+
+            document.getElementById('prev-btn').disabled = (currentQuestion === 0);
+            if (currentQuestion === total - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+                document.getElementById('submit-btn').classList.add('hidden');
+            }
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectOption(ansIndex) {
+            answers[currentQuestion] = ansIndex;
+            loadQuestion();
+        }
+
+        function nextQuestion() { if (currentQuestion < questions.length - 1) { currentQuestion++; loadQuestion(); } }
+        function prevQuestion() { if (currentQuestion > 0) { currentQuestion--; loadQuestion(); } }
+
+        async function submitTest() {
+            let correctCount = 0;
+            questions.forEach((q, idx) => { if (answers[idx] === q.ans) correctCount++; });
+            const score = Math.round((correctCount / questions.length) * 100);
+            
+            const payload = { userInfo: userInfo, answers: answers, correctCount: correctCount, score: score };
+
+            showLoading(true);
+            try {
+                const response = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const resData = JSON.parse(await response.text());
+                alert(`【測試完成並已上傳雲端】\n得分：${score} 分\n雲端回覆：${resData.message}`);
+                location.reload();
+            } catch (err) {
+                alert(`上傳失敗，但您的分數為：${score} 分。錯誤原因：` + err.message);
+                showLoading(false);
+            }
+        }
+    </script>
+</body>
+</html>
